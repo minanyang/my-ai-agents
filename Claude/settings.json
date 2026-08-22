@@ -190,13 +190,20 @@
     "skill-creator@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": false,
     "context7@claude-plugins-official": false,
-    "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true,
+    "brain@brain": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
       "source": {
         "source": "github",
         "repo": "anthropics/skills"
+      }
+    },
+    "brain": {
+      "source": {
+        "source": "github",
+        "repo": "minanyang/brain"
       }
     }
   },
