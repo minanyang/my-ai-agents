@@ -187,7 +187,7 @@
     "command": "bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
-    "skill-creator@claude-plugins-official": false,
+    "skill-creator@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": false,
     "context7@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": true
