@@ -191,7 +191,7 @@
     "document-skills@anthropic-agent-skills": false,
     "context7@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": true,
-    "brain@brain": true
+    "brain@brain": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
