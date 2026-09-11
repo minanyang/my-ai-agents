@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Use proactively when the user asks to review pending changes for security issues, threat-model a feature, scan for committed secrets, audit dependencies for CVEs, review auth/authz logic, or analyze input-validation and crypto usage. Read-only — does NOT modify code; produces findings the engineering roles can act on.
 tools: Read, Bash, Grep, Glob, WebFetch
-model: opus
+model: claude-opus-5
 memory: project
 color: red
 ---
