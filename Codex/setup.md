@@ -37,8 +37,9 @@ Restart Codex after installation. Use `/skills` to inspect skills, `/hooks` to r
 For normal local development, use:
 
 ```toml
-# Work autonomously inside the current workspace.
-approval_policy = "never"
+# Work autonomously inside the current workspace; auto-review elevated requests.
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
 sandbox_mode = "workspace-write"
 web_search = "cached"
 model = "gpt-5.6-luna"
@@ -50,15 +51,15 @@ default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "low"
 ```
 
-This is both the budget and autonomous-local profile: Codex can edit and run routine commands in the current workspace without repeatedly asking for approval. The workspace boundary and forbidden `.rules` entries remain active. This does not suppress clarification when required information is missing or when an irreversible/external action needs explicit authorization.
+This is both the budget and autonomous-local profile: Codex can edit and run routine commands in the current workspace without repeatedly asking for approval. Eligible elevated requests go through Codex auto-review first. The workspace boundary and forbidden `.rules` entries remain active. Auto-review can make mistakes and does not suppress clarification when required information is missing or when an irreversible/external action needs explicit authorization.
 
 For a one-off autonomous run, the equivalent CLI flags are:
 
 ```bash
-codex --sandbox workspace-write --ask-for-approval never
+codex --sandbox workspace-write --ask-for-approval on-request
 ```
 
-This is intentionally the budget profile: Luna is documented as the faster/cheaper option, and low reasoning reduces work on routine tasks. For a genuinely difficult task, upgrade only that invocation, for example:
+The CLI flag uses the default reviewer configured in `config.toml`. This is intentionally the budget profile: Luna is documented as the faster/cheaper option, and low reasoning reduces work on routine tasks. For a genuinely difficult task, upgrade only that invocation, for example:
 
 ```bash
 codex -m gpt-5.6-terra -c model_reasoning_effort=medium

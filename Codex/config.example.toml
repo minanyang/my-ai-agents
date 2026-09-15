@@ -1,9 +1,10 @@
 # Copy only the settings you want into ~/.codex/config.toml.
 # bootstrap-codex.sh deliberately does not overwrite an existing config file.
 
-# Autonomous local development: do not pause for routine command approvals.
+# Auto-review eligible permission requests instead of interrupting the user.
 # The workspace sandbox and Codex rules still constrain what can run.
-approval_policy = "never"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
 sandbox_mode = "workspace-write"
 web_search = "cached"
 
