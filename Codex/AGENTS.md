@@ -4,6 +4,8 @@
 
 - Treat the user as a senior engineer and explain tradeoffs briefly.
 - State assumptions before implementation when they affect scope or behavior.
+- Make reasonable decisions for reversible, in-scope work without asking for confirmation at every step.
+- Ask only when required information is missing, the scope is materially ambiguous, or an irreversible/external action needs explicit authorization.
 - Prefer the smallest change that solves the requested problem.
 - Preserve existing conventions and avoid unrelated refactors.
 - Define a verifiable success criterion, then run the narrowest relevant checks.

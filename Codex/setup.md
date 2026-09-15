@@ -37,7 +37,8 @@ Restart Codex after installation. Use `/skills` to inspect skills, `/hooks` to r
 For normal local development, use:
 
 ```toml
-approval_policy = "on-request"
+# Work autonomously inside the current workspace.
+approval_policy = "never"
 sandbox_mode = "workspace-write"
 web_search = "cached"
 model = "gpt-5.6-luna"
@@ -47,6 +48,14 @@ model_reasoning_effort = "low"
 max_concurrent_threads_per_session = 3
 default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "low"
+```
+
+This is both the budget and autonomous-local profile: Codex can edit and run routine commands in the current workspace without repeatedly asking for approval. The workspace boundary and forbidden `.rules` entries remain active. This does not suppress clarification when required information is missing or when an irreversible/external action needs explicit authorization.
+
+For a one-off autonomous run, the equivalent CLI flags are:
+
+```bash
+codex --sandbox workspace-write --ask-for-approval never
 ```
 
 This is intentionally the budget profile: Luna is documented as the faster/cheaper option, and low reasoning reduces work on routine tasks. For a genuinely difficult task, upgrade only that invocation, for example:
