@@ -29,6 +29,7 @@ Coding conventions from Claude's path-scoped rules are represented as Codex skil
 ## Runtime differences
 
 - Codex custom agents use TOML and inherit the parent's tools and permission policy unless overridden.
+- The default profile uses `gpt-5.6-luna` with low reasoning for lower usage; escalate per task with `-m gpt-5.6-terra` when needed.
 - `InstructionsLoaded` has no direct Codex equivalent; `SessionStart` logging is the fallback.
 - Snapshot sync is a bounded sweep because Codex edit hook payloads do not reliably provide a single source file path.
 - MCP server names are environment-specific and are intentionally not hardcoded into these agents.

@@ -40,9 +40,22 @@ For normal local development, use:
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 web_search = "cached"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "low"
+
+[agents]
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-5.6-luna"
+default_subagent_reasoning_effort = "low"
 ```
 
-Keep model selection outside this snapshot unless a role has a measured reason to pin one. Availability and model defaults can change independently of this repository.
+This is intentionally the budget profile: Luna is documented as the faster/cheaper option, and low reasoning reduces work on routine tasks. For a genuinely difficult task, upgrade only that invocation, for example:
+
+```bash
+codex -m gpt-5.6-terra -c model_reasoning_effort=medium
+```
+
+Do not make Terra or a high reasoning effort the global default. Model availability and plan allowances can change independently of this repository; check `/status` when a session starts.
 
 ## MCP setup
 
