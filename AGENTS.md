@@ -4,17 +4,18 @@ Repository-level guidance for AI agents and human contributors.
 
 ## Purpose
 
-This repo has two distributions of the same operating model:
+This repo has three distributions of the same operating model:
 
 - `Claude/` — Claude-native setup
 - `Cursor/` — Cursor-native setup
+- `Codex/` — Codex-native setup
 
 Keep behavior parity between them whenever practical.
 
 ## Source of truth
 
 - Claude edition content is the primary source for policy/rules/role intent.
-- Cursor edition should stay semantically aligned, but may differ where runtime capabilities differ.
+- Cursor and Codex editions should stay semantically aligned, but may differ where runtime capabilities differ.
 - Use `NON_CLAUDE_PARITY_PLAN.md` for migration decisions and parity constraints.
 
 ## Editing rules
@@ -51,6 +52,7 @@ If exact parity is not possible, document the reason in the edition README or se
 ## Agent/rule/skill updates
 
 - If `Claude/agents`, `Claude/rules`, or `Claude/skills` change, verify whether `Cursor/` equivalents must also be updated.
+- If shared role or skill intent changes, verify the `Codex/` equivalent as well.
 - Keep tool names/provider namespaces runtime-appropriate for each edition.
 
 ## Validation checklist (for substantive changes)
@@ -58,4 +60,5 @@ If exact parity is not possible, document the reason in the edition README or se
 - docs updated in the correct edition
 - parity impact reviewed
 - bootstrap scripts still work
+- Codex agent TOML, hook JSON, and shell scripts validate
 - no obvious secret exposure in synced files

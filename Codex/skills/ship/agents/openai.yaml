@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ship"
+  short_description: "Drive a feature from requirement to reviewed branch."
+policy:
+  allow_implicit_invocation: false

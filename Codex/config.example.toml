@@ -1,0 +1,13 @@
+# Copy only the settings you want into ~/.codex/config.toml.
+# bootstrap-codex.sh deliberately does not overwrite an existing config file.
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 6
+
+# Project instructions are already named AGENTS.md in this repository.
+project_doc_max_bytes = 65536

@@ -1,0 +1,54 @@
+{
+  "description": "Codex safety guard, snapshot sync, and instruction logging for my-ai-agents.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CODEX_HOME:-$HOME/.codex}/scripts/guard-command.sh\"",
+            "statusMessage": "Checking command safety"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CODEX_HOME:-$HOME/.codex}/scripts/sync-to-snapshot.sh\"",
+            "statusMessage": "Syncing Codex snapshot",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CODEX_HOME:-$HOME/.codex}/scripts/log-session-event.sh\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CODEX_HOME:-$HOME/.codex}/scripts/sync-to-snapshot.sh\"",
+            "async": true,
+            "statusMessage": "Finalizing Codex snapshot",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

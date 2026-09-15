@@ -1,0 +1,5 @@
+interface:
+  display_name: "Commit for Review"
+  short_description: "Commit review fixes on an isolated review branch."
+policy:
+  allow_implicit_invocation: false

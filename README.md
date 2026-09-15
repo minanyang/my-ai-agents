@@ -1,11 +1,12 @@
 # my-ai-agents
 
-Claude-first personal AI-agent setup snapshot, with a Cursor alternative distribution for near-parity workflows.
+Personal AI-agent setup snapshot with Claude, Cursor, and Codex distributions.
 
 ## Start Here
 
 - Primary (Claude): [`Claude/setup.md`](./Claude/setup.md)
 - Alternative (Cursor): [`Cursor/setup.md`](./Cursor/setup.md)
+- Codex: [`Codex/setup.md`](./Codex/setup.md)
 - Claude reference: [`Claude/README.md`](./Claude/README.md)
 - Cursor reference: [`Cursor/README.md`](./Cursor/README.md)
 - Parity plan: [`NON_CLAUDE_PARITY_PLAN.md`](./NON_CLAUDE_PARITY_PLAN.md)
@@ -101,12 +102,26 @@ For users who prefer Cursor, this repo includes a parallel distribution in [`Cur
 - bootstrap flow for wiring a target project quickly
 - setup details in [`Cursor/setup.md`](./Cursor/setup.md)
 
+## Codex Distribution
+
+For Codex CLI, desktop, or IDE use, see [`Codex/setup.md`](./Codex/setup.md). It provides:
+
+- global guidance for `~/.codex/AGENTS.md`
+- TOML custom agents under `~/.codex/agents/`
+- command execution policy under `~/.codex/rules/`
+- portable skills under `~/.agents/skills/`
+- native Codex hooks with a bounded snapshot sync
+- optional defaults in [`Codex/config.example.toml`](./Codex/config.example.toml)
+
+Codex `.rules` files control command execution policy, so the coding guidance formerly expressed as Claude path rules is represented as Codex skills instead.
+
 ## Setup-Only Details
 
 All operational steps are intentionally centralized in setup docs:
 
 - Claude install/auth/bootstrap/MCP/plugins/checklist: [`Claude/setup.md`](./Claude/setup.md)
 - Cursor bootstrap/MCP/checklist: [`Cursor/setup.md`](./Cursor/setup.md)
+- Codex install/auth/bootstrap/MCP/hooks/checklist: [`Codex/setup.md`](./Codex/setup.md)
 
 ## License
 
