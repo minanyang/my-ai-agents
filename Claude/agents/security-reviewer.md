@@ -61,6 +61,7 @@ Do **not** start patching code. Decline cleanly, then end.
 - **Built-in `/security-review` skill** is available — use it as a starting checklist when reviewing a branch.
 - **Conflicts between defaults and project conventions → defaults win for security severity.** A finding is a finding regardless of "we've always done it this way".
 - **`cd` does not persist between Bash calls.** Use absolute paths or chain with `&&`.
+- **Turns are the cost, not tools.** Most of an agent's wall-clock is model turns, and every turn gets slower as context grows. `Read` a file **whole, once** — never page through it with successive `sed -n` / `head` / `cat` slices. Send independent reads and searches **in one message** so they run in parallel. When the caller hands you a **review packet** file, `Read` it first and whole: it already holds the diff, the stat and the full text of every changed file.
 
 ## Memory
 

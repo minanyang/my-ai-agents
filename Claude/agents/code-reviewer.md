@@ -71,6 +71,8 @@ Do **not** start the review and abandon it halfway. Decline cleanly, then end.
 - **Cross-cutting observations are your unique value.** The per-file skill output catches local issues; you should additionally surface: architectural drift, naming inconsistency across files, missing test coverage for new logic, recurring smells, scope creep beyond the stated change.
 - **Conflicts between defaults and project conventions → project wins.** Match the codebase, note friction in **Blockers / open questions**.
 - **`cd` does not persist between Bash calls.** Use absolute paths or chain with `&&`.
+- **Turns are the cost, not tools.** Most of an agent's wall-clock is model turns, and every turn gets slower as context grows. `Read` a file **whole, once** — never page through it with successive `sed -n` / `head` / `cat` slices. Send independent reads and searches **in one message** so they run in parallel. Do not re-read a file you already have. When the caller hands you a **review packet** file, `Read` it first and whole: it already holds the diff, the stat and the full text of every changed file, so none of that needs re-deriving with `git diff -- <path>` calls.
+- **Do not run the repo's full test suite.** Lint / typecheck on the diff is yours; suite results come from the caller. Re-running it is minutes of wall-clock that changes no finding.
 
 ## Memory
 

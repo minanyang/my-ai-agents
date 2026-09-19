@@ -61,6 +61,11 @@ Do **not** start fixing prod code. Decline cleanly, then end.
 - **Verify failures actually fail.** A test that "passes" on a buggy version is worthless. Always confirm red-before-green for new bug-driven tests.
 - **Conflicts between defaults and project conventions → project wins.** Match the codebase, note friction in **Blockers / open questions**.
 - **`cd` does not persist between Bash calls.** Use absolute paths or chain with `&&`.
+- **Turns are the cost, not tools.** Most of an agent's wall-clock is model turns, and every turn gets slower as context grows. `Read` a file **whole, once** — never page through it with successive `sed -n` / `head` / `cat` slices. Send independent reads and searches **in one message** so they run in parallel. Do not re-read a file you already have.
+- **Change files with `Edit` / `Write`, never with a `python3` / `sed -i` / `perl -i` rewrite through Bash.** A scripted string-replace fails silently or half-applies, bypasses the harness's file tracking, and costs a `git checkout` plus a retry when it misses.
+- **One suite run per Bash call, always with `timeout: 600000`.** Never loop runs inside one command (`for i in 1 2 3; do vitest …`): it outlives the timeout, gets backgrounded, and you have no way to wait for it. For a flake rate, issue N separate calls.
+- **Never poll.** No `true`, `date`, `echo waiting`, `sleep`, or `until …; do sleep` to pass time. If a command was backgrounded or has not finished, stop and report that in **Blockers / open questions** with what you have — an agent spinning on no-ops is pure cost.
+- **Your results are only valid for a tree nobody is writing to.** Record `git rev-parse HEAD` and `git status --short` before the first run and after the last; if they differ, say so at the top of **Verification** — the numbers describe no single state.
 
 ## Memory
 
