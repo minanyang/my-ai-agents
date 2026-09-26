@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1790374902826,
+  "lastUpdated": 1790409733337,
   "skills": [
     {
       "skillId": "docs",
@@ -37,9 +37,10 @@
       "skillId": "skill_01WM9tnzAqap4XRvzhrZtBW2",
       "name": "stock-analysis",
       "description": "對任意一支美股（含 ETF）從頭到尾做完整的獨立深度分析，並與目前持倉組合比對。 適用場景： - 用戶說「分析 AAPL」、「幫我看一下 TSLA」、「研究 NVDA 這支股票」 - 用戶說「我想買 AMZN，幫我評估一下」、「[股票代碼] 值得買嗎」 - 用戶說「/stock-analysis [代碼]」、「/analyze [代碼]」 - 用戶提到某支股票並想了解它的基本面、技術面、估值或投資建議 - 用戶想知道某支股票是否適合加入自己的現有組合 即使用戶只說股票代碼或公司名稱，只要意圖是「想了解這支股票」，都應使用此 skill。",
-      "source": "custom",
-      "updatedAt": "2026-05-16T01:46:42.681813Z",
-      "creatorType": "user"
+      "source": "plugin",
+      "updatedAt": "2026-05-16T01:46:42.681485Z",
+      "creatorType": "user",
+      "backingPluginId": "plugin_01FyqDw9YYBFH6g9GE6GadCw"
     },
     {
       "skillId": "skill-creator",
