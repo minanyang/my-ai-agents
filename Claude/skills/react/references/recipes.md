@@ -22,7 +22,7 @@ import { Button } from '@org/ui/Button';
 import { Modal } from '@org/ui/Modal';
 ```
 
-If the package doesn't expose deep paths, add `modularizeImports` (Next.js) or a Babel plugin to rewrite at build time.
+In Next.js, prefer keeping the barrel import and listing the package in `experimental.optimizePackageImports` (several, incl. `@mui/material` / `@mui/icons-material`, are on by default). In Vite there's no equivalent — use the deep paths (`@mui/material/Button`).
 
 ---
 
@@ -231,14 +231,18 @@ SWR dedupes identical keys within a configurable window (default 2s). React Quer
 
 ## client-passive-event-listeners
 
-**Spot:** A scroll handler somewhere in the app, no `passive` option.
+**Spot:** A `touchstart` / `touchmove` / `wheel` listener attached with `addEventListener` (usually in a `useEffect`) with no `passive` option, that never calls `preventDefault()`.
 
 **Fix:**
 ```ts
-window.addEventListener('scroll', onScroll, { passive: true });
+useEffect(() => {
+  const onWheel = (e: WheelEvent) => track(e.deltaY);
+  document.addEventListener('wheel', onWheel, { passive: true });
+  return () => document.removeEventListener('wheel', onWheel);
+}, []);
 ```
 
-In React 18+, `onScroll` on a JSX element is already passive. The fix mainly applies to `useEffect`-attached listeners on `window` / `document`.
+Since React 17, JSX `onTouchStart` / `onTouchMove` / `onWheel` are already attached as passive listeners (so `preventDefault()` inside them does nothing — use a manual non-passive listener for custom swipe/zoom). `scroll` isn't cancelable, so `passive` doesn't change anything for it.
 
 ---
 

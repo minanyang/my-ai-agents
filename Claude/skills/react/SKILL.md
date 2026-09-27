@@ -49,7 +49,9 @@ Identify the **bottleneck type first** — bundle, network, render, hydration, o
 
 **MANDATORY** when applying any fix: load `references/recipes.md` and copy the canonical patch shape for the matching rule. Don't write transformation code from memory — wrong-shaped memoization or wrong-shaped Suspense placement is worse than no fix.
 
-**Do NOT load** the upstream AGENTS.md unless doing a full audit against all 58 rules. The category overview + `rules.md` + `recipes.md` cover the React-only subset.
+**Do NOT load** the upstream AGENTS.md unless doing a full audit against all 70 upstream rules (count as of 2026-09). The category overview + `rules.md` + `recipes.md` cover the React-only subset.
+
+**Check the repo's React version first.** Some rules use React 19-only APIs (`<Activity>` and `useEffectEvent` need 19.2+; `use()`, `useActionState`, `useOptimistic`, `react-dom` resource hints and ref-as-prop need 19). `rules.md` marks them; on React 18 use the fallback it names.
 
 ## When NOT to optimize
 
@@ -59,7 +61,7 @@ Cheap perf wins are real. So is engineering time. Skip the optimization when:
 - **You can't reproduce the slowness.** A re-render storm in DevTools that doesn't translate to dropped frames or stuttering input is reconciliation cost, which is cheap. Ship the change, don't optimize.
 - **The bottleneck is a single hot product flow you're about to redesign.** Don't pay for perf work the redesign deletes.
 - **The fix requires a significantly more complex API.** A `Provider` + `useStore` + selector setup to avoid one parent re-render is rarely worth it. Same for hand-rolled refs to "save a render" — the cognitive cost outlives the benefit.
-- **The library you're optimizing around is moving fast.** React Compiler is rolling out — most `useMemo` / `useCallback` calls written today will be undone in a year. Hold the line on memoization until profiling forces it.
+- **The repo runs React Compiler.** React Compiler is stable (1.0), but it is opt-in per repo — check for `babel-plugin-react-compiler` in `package.json` and `reactCompiler` in `next.config` / the Vite React plugin's babel config. If it's enabled, don't hand-add `useMemo` / `useCallback` / `memo`; the compiler memoizes. If it isn't (the default), memoize only where the `rerender-` rules and a profile say so.
 
 ## First rule to try per category
 
@@ -80,7 +82,7 @@ When you've identified the right category, this is the rule with the highest lev
 These misdiagnoses waste a session — verify before applying any fix:
 
 - **"This component re-renders too much"** — first check whether the re-render actually causes a paint or expensive child render. React reconciliation is cheap; if the DOM doesn't change and children are memoized, `memo` on the parent adds overhead without benefit.
-- **"useMemo will fix this"** — memoizing trivial primitives or simple expressions costs more (equality + closure allocation) than the recompute. Profile before memoizing — assume React Compiler.
+- **"useMemo will fix this"** — memoizing trivial primitives or simple expressions costs more (equality + closure allocation) than the recompute. Profile before memoizing. Don't assume React Compiler — check whether the repo enables it (see above).
 - **"Adding `key` will fix the list"** — `key={index}` on a reorderable list *causes* state-loss bugs, doesn't prevent them. React reuses DOM nodes by key; with index keys, state attaches to the wrong row after a sort. Use a stable id.
 - **"`useEffect` is the right place for this"** — for derived state, derive during render. For one-time work, run at module scope or in an event handler. For data fetching, use SWR / React Query (or RSC if Next.js). Effects are the last resort, not the default.
 - **"This `Suspense` boundary will speed up the page"** — a boundary high in the tree only helps if the work inside *actually* yields (lazy import, async data). Wrapping synchronous work in `Suspense` does nothing.
@@ -98,7 +100,7 @@ These reliably tank performance — flag on sight:
 - **NEVER** subscribe to state that's only read inside callbacks. The component re-renders on every state change even when the rendered output doesn't depend on it. → `rerender-defer-reads`.
 - **NEVER** use `key={index}` on lists that can reorder, filter, or insert at the start. State binds to the wrong row, inputs lose focus, animations play backwards. → use a stable id.
 - **NEVER** load analytics / logging / tracking SDKs synchronously on first paint — they delay hydration and aren't critical until after interaction. → `bundle-defer-third-party`.
-- **NEVER** skip `passive: true` on scroll / wheel / touchmove listeners — without it, the browser can't start scrolling until your handler returns, causing visible jank. → `client-passive-event-listeners`.
+- **NEVER** skip `passive: true` on `addEventListener` wheel / touchstart / touchmove listeners that don't call `preventDefault()` — without it, the browser can't start scrolling until your handler returns, causing visible jank. → `client-passive-event-listeners`.
 - **NEVER** reach for Redux / Zustand / a global store for state that's only read in one subtree. Component state + composition + context handles 90% of cases; a store is debt you carry forever for no perf win.
 - **NEVER** add `'use client'` reflexively because "this file uses a hook". If the hook is in a leaf component, only that component needs the directive — pulling it up traps the parents into the client bundle.
 
