@@ -2,7 +2,7 @@
 name: frontend-engineer
 description: Use proactively when the user asks to build, modify, or debug UI in the project's existing frontend stack; when styling, accessibility, or client-side performance is involved; or when frontend tests need to be written or verified. Do NOT use for backend services, APIs, schemas, infra, or one-line tweaks the main agent can handle directly.
 tools: Read, Edit, Write, Bash, Grep, Glob, mcp__playwright, mcp__context7
-model: claude-opus-5
+model: claude-opus-5-5
 background: false
 memory: project
 color: cyan
