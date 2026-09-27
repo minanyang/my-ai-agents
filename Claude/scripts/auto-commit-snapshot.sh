@@ -60,6 +60,23 @@ git symbolic-ref -q HEAD >/dev/null || {
     | bash "$CLAUDE_DIR/scripts/sync-to-snapshot.sh"
 done
 
+# Deletion sweep: the copy loop above never removes anything, so a file deleted
+# live stays in the snapshot forever. Drop snapshot files under the whitelisted
+# dirs whose live counterpart is gone, plus the excluded skills/synced/. Delete-
+# only, so the secret guard in sync-to-snapshot.sh stays the sole copy path. A
+# missing live dir is skipped rather than read as "everything was deleted".
+for d in scripts agents skills rules; do
+  [ -d "$CLAUDE_DIR/$d" ] && [ -d "Claude/$d" ] || continue
+  find "Claude/$d" -type f | while IFS= read -r s; do
+    rel="${s#Claude/}"
+    case "$rel" in
+      skills/synced/*) rm -f "$s" ;;
+      *) [ -e "$CLAUDE_DIR/$rel" ] || rm -f "$s" ;;
+    esac
+  done
+  find "Claude/$d" -mindepth 1 -type d -empty -delete
+done
+
 # Nothing to commit under Claude/ after sweep → silent no-op
 [ -z "$(git status --porcelain Claude/)" ] && exit 0
 

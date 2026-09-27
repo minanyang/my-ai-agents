@@ -43,7 +43,7 @@ Per the worktree: read `git -C <worktree> status --short` and the diff, check no
 <type>(<id>): short summary in the imperative
 ```
 
-Conventional Commits, English, matching the repo's own log. If a pre-commit hook reformats and aborts, re-stage and commit again — never `--amend`, never `--no-verify`. **Do not push.**
+Conventional Commits, English, matching the repo's own log. No `Co-Authored-By` trailer. If a pre-commit hook reformats and aborts, re-stage and commit again — never `--amend`, never `--no-verify`. **Do not push.**
 
 Write `changes.md`:
 

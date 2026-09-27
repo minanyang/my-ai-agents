@@ -50,7 +50,7 @@ git commit -m "<type>(<id>): the task's one-line story"
 git push                                   # only if a remote exists
 ```
 
-The squash subject is the task's one-line story, not a list of WIP commits; link the source ticket in the PR body. Push rejected → someone else pushed; **stop and ask, never `--force`.** Blocked by required reviews or failing checks → that is the protection working: report the URL, leave the worktree in place, stop.
+The squash subject is the task's one-line story, not a list of WIP commits; link the source ticket in the PR body. No `Co-Authored-By` trailer on the squash commit. Push rejected → someone else pushed; **stop and ask, never `--force`.** Blocked by required reviews or failing checks → that is the protection working: report the URL, leave the worktree in place, stop.
 
 ## 5 — Sync, clean up, record
 

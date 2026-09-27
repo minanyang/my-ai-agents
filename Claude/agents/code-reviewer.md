@@ -25,7 +25,7 @@ Engineer agents can `/code-review` their own work for inline polish — that's a
    - Pending uncommitted/unstaged work → use the `code-review` skill
    - Whole branch vs base / pre-PR audit → use the `code-review-branch` skill
    - Specific file or diff → use `code-review` scoped to that path
-   - Specific PR by number → hand back; use `gh pr view` + the built-in `/review` skill instead
+   - Specific PR by number → hand back; use `gh pr view` + `/review <pr#>` instead (the alias of Claude Code's bundled `/code-review`, which the personal `code-review` skill shadows)
 3. **Verify scope** against "Take the task when" / "Hand back" below.
 4. **Invoke the matching skill in findings-only mode** — this is non-negotiable. Both skills support an explicit findings-only mode; you must always use it. Never let the skill apply fixes, never let it `git add -A`, never let it modify git state.
 5. **Synthesize the report** — the skill produces a structured findings block; integrate it into the Output contract below. Add cross-cutting observations the per-file pass might miss (architectural drift, coverage gaps, recurring code smells across files).

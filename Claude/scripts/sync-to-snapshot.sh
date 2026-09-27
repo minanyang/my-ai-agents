@@ -35,7 +35,11 @@ REL="${FILE_PATH#$CLAUDE_DIR/}"
 # settings.local.json is deliberately NOT here: it holds the per-device permission
 # allowlist, which each machine accumulates on its own. Mirroring it would make two
 # machines overwrite each other's permissions on every sync. It is gitignored.
+#
+# skills/synced/ is managed by claude.ai skill sync and rewritten every session;
+# mirroring it only produced meaningless commits.
 case "$REL" in
+  skills/synced/*) exit 0 ;;
   CLAUDE.md|settings.json|statusline.sh) ;;
   scripts/*|agents/*|skills/*|rules/*) ;;
   *) exit 0 ;;

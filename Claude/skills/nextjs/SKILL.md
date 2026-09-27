@@ -13,7 +13,7 @@ Server-first rules for Next.js App Router. Use the **mini decision flow** to pic
 
 - **Server Components by default.** `'use client'` is opt-in, deepest in the tree, only when interactivity / hooks / browser APIs require it. A client boundary high in the tree pulls everything below into the client bundle.
 - **Network beats CPU.** A waterfall of three 200ms fetches is 600ms; the same three in parallel is 200ms. Fix waterfalls before tuning anything else.
-- **Cache shape matters more than cache hit rate.** `React.cache` for per-request dedup, `unstable_cache` / external LRU for cross-request, `cache: 'force-cache'` / `'no-store'` per fetch — pick the right tier for the freshness you need.
+- **Cache shape matters more than cache hit rate.** `React.cache` for per-request dedup, `unstable_cache` / external LRU for cross-request, `next: { revalidate, tags }` / `cache: 'force-cache'` per fetch — pick the right tier for the freshness you need. In Next 15 `fetch` is **uncached by default**; caching is always something you opt into.
 - **Server Actions are public endpoints.** Auth them. Validate inputs. They're closer to RPC than to internal function calls.
 - **Don't ship the database to the client.** RSC props get serialized; an entire user record where the client needs `{ name, avatar }` wastes bandwidth and creates leak risk.
 
@@ -43,9 +43,9 @@ Server-first rules for Next.js App Router. Use the **mini decision flow** to pic
 
 **MANDATORY** when targeting a specific category: load `references/rules.md` and read the matching prefix block. Category labels alone don't tell you *what to change*.
 
-**MANDATORY** when applying any fix: load `references/recipes.md` for the canonical patch shape. Server-side caching APIs change between Next versions — copy the recipe rather than recall from training.
+**MANDATORY** when applying any fix: load `references/recipes.md` for the canonical patch shape. Server-side caching APIs change between Next versions — copy the recipe rather than recall from training. Recipes target **Next 15** (async `params` / `searchParams` / `cookies()` / `headers()` / `draftMode()`, uncached-by-default `fetch`); check the repo's `next` version before applying one.
 
-**Do NOT load** the upstream AGENTS.md unless doing a full audit against all 58 rules.
+**Do NOT load** the upstream AGENTS.md unless doing a full audit against all 70 upstream rules (count as of 2026-09).
 
 ## App Router patterns (no rule prefix — these are conventions, not perf rules)
 
@@ -55,29 +55,30 @@ These aren't Vercel rules; they're Next.js correctness defaults that prevent the
 - **Server Actions for mutations from your own UI.** Auth, validate input, return typed errors via `useActionState`. Don't put business logic in `<form action={'/api/x'}>` — that bypasses the React-integrated action lifecycle.
 - **Route Handlers (`app/api/route.ts`) for external clients.** Webhooks, mobile apps, third-party callbacks, anything not driven by *your* React tree. Match HTTP verbs explicitly (`export async function POST`).
 - **`error.tsx` and `loading.tsx`** instead of hand-rolled error/loading flags. Next wraps your segment in error/Suspense boundaries automatically.
+- **`params` / `searchParams` are Promises (Next 15).** `const { id } = await params` in pages, layouts, route handlers and `generateMetadata`; same for `await cookies()`, `await headers()`, `await draftMode()`. In a Client Component, unwrap with `use(params)` or read `useParams()`.
 - **Mark dynamic mode explicitly** when behavior matters: `export const dynamic = 'force-static' | 'force-dynamic' | 'auto'`. Implicit auto-detection has surprised many people; an explicit value documents intent.
 - **`revalidatePath` / `revalidateTag` after mutations** in Server Actions. Without it, the page keeps showing stale data until the next deploy or fetch.
 
 ## Common false alarms
 
-- **"Server Components are slow"** — almost always a waterfall (sequential awaits inside an RSC), not RSC overhead. Profile with `next build --profile` or check the Server Components flame graph in Next devtools.
+- **"Server Components are slow"** — almost always a waterfall (sequential awaits inside an RSC), not RSC overhead. Turn on `logging: { fetches: { fullUrl: true } }` in `next.config` to see each server fetch and whether it hit the cache, and look for sequential `await`s.
 - **"I need `'use client'` on this whole page"** — almost never. Only the interactive leaf needs it. Pull the boundary down; pass server data in as props.
 - **"`force-dynamic` will fix the stale data"** — usually it just hides the real cache key bug. Find the fetch with wrong revalidation or the missing `revalidatePath` call.
 - **"Server Actions are like internal helper functions"** — they're public endpoints exposed at a generated URL. Auth + validate every one.
 - **"`React.cache` will fix cross-request duplication"** — no, `React.cache` is per-request only. Use `unstable_cache` or an external store (Redis / LRU) for cross-request.
-- **"Adding `cache: 'no-store'` is the safe default"** — that opts every fetch into dynamic rendering and disables ISR. Pick freshness intentionally.
+- **"`fetch` is cached, so this data is warm"** — not in Next 15. An unannotated `fetch` is `no-store`-equivalent: on a dynamically rendered route (dynamic params without `generateStaticParams`, `cookies()` / `headers()`, `force-dynamic`) every request pays the origin round trip, and `generateMetadata` awaiting the same call can gate the whole document. Caching needs an explicit `next: { revalidate }` / `cache: 'force-cache'` / `unstable_cache`.
 
 ## NEVER
 
 - **NEVER** fetch the same data twice in a single request without `React.cache` wrapping the fetch. Two RSCs that need the user → both call `getUser()` → 2× DB hits per request. → `server-cache-react`.
 - **NEVER** serialize entire DB records into client component props. The client gets `{ name, avatar }` but you ship `{ id, name, email, password_hash, created_at, ...30 fields }`. Bandwidth + leak risk. → `server-serialization`, `server-dedup-props`.
 - **NEVER** add `'use client'` at the page level "to be safe". You silently move the entire tree into the client bundle. → keep boundaries deep; pass server data as props.
-- **NEVER** use `cache: 'no-store'` as a project default. Every fetch turns the route dynamic, defeats ISR, and slows cold loads. → pick freshness per fetch.
+- **NEVER** assume a server `fetch` is cached, and never "fix" it with a blanket `fetchCache = 'default-cache'` / `'force-cache'` segment config. Opt in per call site (`next: { revalidate: n, tags: [...] }`, or `unstable_cache` when you must cache non-`fetch` work or non-200 answers — the Data Cache only stores status-200 responses), and give every cached entry an invalidation story (`revalidateTag` on publish). `revalidate` is stale-while-revalidate: the first reader after the window still gets the stale copy.
 - **NEVER** skip auth in a Server Action because "the form is internal". Server Actions are reachable as POST requests by anyone with the URL. → `server-auth-actions`.
 - **NEVER** block the response on non-critical work (logging, analytics, secondary writes). → wrap in `after()` so it runs after the response is sent.
 - **NEVER** hand-roll fetch dedup with `Map` / module-level cache in RSC. `React.cache` already does it correctly with the right scope. → `server-cache-react`.
 - **NEVER** fetch in a parent RSC then `await` again in a child RSC for related data when both could fetch in parallel. Restructure the tree to colocate parallel fetches. → `server-parallel-fetching`.
-- **NEVER** import a heavy client widget (chart, editor, map) at the top of a page that doesn't always render it. → `bundle-dynamic-imports` with `next/dynamic({ ssr: false })`.
+- **NEVER** import a heavy client widget (chart, editor, map) at the top of a page that doesn't always render it. → `bundle-dynamic-imports` with `next/dynamic`. `{ ssr: false }` is only supported inside a `'use client'` file, not in a Server Component page; put the `dynamic(..., { ssr: false })` call in a small client wrapper.
 - **NEVER** mutate without `revalidatePath` / `revalidateTag` in Server Actions — UI shows stale data until the cache happens to expire.
 
 ## Scenario → Rules

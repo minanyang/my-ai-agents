@@ -41,7 +41,13 @@ If none of these exist, skip tool output entirely — this becomes a findings-on
 
 *Findings-only mode: skip this step entirely — never stage, never modify git state. Read uncommitted work via `git diff` and `git diff --cached` directly in step 3.*
 
-If the user named specific paths, run `git add -- <paths>`. Otherwise run `git add -A` from the repo root. From this point forward, the staged diff IS the user's work. Do not restage, unstage, or rewrite it.
+Stage by explicit path only — never `git add -A` or `git add .`; a sweep pulls in files that were never part of the work (scratch, `.env*`, build output) and erases any staging the user did on purpose.
+
+- User named specific paths → `git add -- <paths>`.
+- Otherwise, if nothing is staged yet → stage the tracked files with changes (`git diff --name-only`) by path. For untracked files, list them and stage only the ones the user confirms belong to the work.
+- Something is already staged and other changes are not → that split is the user's deliberate staging. Don't fold the unstaged part in; ask whether to stage it as part of the baseline or to run findings-only (fixing on top of unstaged user work would make your edits indistinguishable from theirs).
+
+Say which paths you staged. From this point forward, the staged diff IS the user's work. Do not restage, unstage, or rewrite it.
 
 Deleted files: `git add` will stage the deletion and `git diff --cached` will show it. Review the deletion intent (was it accidental? does anything still import it?), but don't re-add files the user clearly meant to remove.
 
@@ -58,9 +64,9 @@ Review **only** the cached diff (scoped to `<paths>` if the user named any). Ign
 
 ### 4. Apply project rules during review
 
-If `.cursor/rules/*` exists, read the relevant rule files (architecture, naming, TypeScript, imports, framework-specific) and apply them as review criteria. Don't restate the rules in the report — just use them to find issues.
+Read the project's own conventions — `CLAUDE.md`, `AGENTS.md`, `.claude/rules/`, `.cursor/rules/`, whichever exist — and apply the relevant ones (architecture, naming, TypeScript, imports, framework-specific) as review criteria. Don't restate the rules in the report — just use them to find issues.
 
-If the diff includes React/Next.js code, also apply Vercel React best practices. If the repo has `docs/VERCEL_REACT_BEST_PRACTICES_AGENTS.md` (or similar), read it; otherwise rely on standard guidance.
+If the diff includes React or Next.js code, also apply the `react` / `nextjs` skills' guidance.
 
 ### 5. Produce the structured report
 
@@ -80,7 +86,7 @@ Output in this order:
 
 *Findings-only mode: skip this step entirely. The report from step 5 is the deliverable — never edit files.*
 
-For every Issue you listed and every warning/error from the executed checks, edit the code directly to fix it. Follow project conventions from `.cursor/rules/*` (import aliases, types vs constants layout, etc.).
+For every Issue you listed and every warning/error from the executed checks, edit the code directly to fix it. Follow the project conventions from step 4 (import aliases, types vs constants layout, etc.).
 
 **Do not `git add` your edits.** When you finish, the state must be:
 
@@ -92,7 +98,7 @@ A final `git status` should make this separation obvious.
 ## When NOT to use this skill
 
 - User asks to review the whole branch / compare against `main` or `develop` → use `code-review-branch`.
-- User asks to review a specific PR by number → use `review` (the built-in PR review skill) or `gh pr view`.
+- User asks to review a specific PR by number → use `/review <pr#>` or `gh pr view`. This skill shadows Claude Code's bundled `/code-review` (a personal skill of the same name replaces it); `/review` is the bundled skill's alias and still runs the bundled review, which takes a PR number, branch, or path.
 - User asks for a security audit → use `security-review`.
 - There are no uncommitted changes (`git status` is clean) → tell the user the working tree is clean and stop. Don't fabricate findings.
 

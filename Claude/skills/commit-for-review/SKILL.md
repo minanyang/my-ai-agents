@@ -2,7 +2,7 @@
 name: commit-for-review
 description: Commit on a dedicated review/<id> branch instead of the branch you're reviewing — derive the branch name from the current branch, switch to it, then commit, so your review changes never touch the branch under review. Same message/staging/hook/secret rules as the `commit` skill; only the destination branch differs. Use when reviewing a teammate's branch and you want your fixes or notes isolated on their own branch. Triggers: "commit for review", "commit this for review", "review commit", "commit on a review branch", or invoking /commit-for-review.
 disable-model-invocation: true
-allowed-tools: Bash(git status:*) Bash(git diff:*) Bash(git log:*) Bash(git add:*) Bash(git commit:*) Bash(git restore:*) Bash(git rev-parse:*) Bash(git switch:*) Bash(git branch:*)
+allowed-tools: Bash(git status:*) Bash(git diff:*) Bash(git log:*) Bash(git add:*) Bash(git commit:*) Bash(git restore:*) Bash(git apply:*) Bash(git rev-parse:*) Bash(git switch:*) Bash(git branch:*)
 ---
 
 # Commit for review
