@@ -23,7 +23,7 @@ The repo is a snapshot of `~/.claude/`, not an application. Pulling changes **fi
 
 Two hooks run the snapshot loop: `PostToolUse` on `Edit|Write` mirrors edited live files into the repo, and `Stop` (async) re-sweeps the whitelist, stages `Claude/`, and auto-commits.
 
-So if you pull new scripts and *don't* bootstrap, the `Stop` sweep at session end copies this device's **old** `~/.claude/` files back over the freshly-pulled snapshot, deletes every file the pull added that this device doesn't have yet, and auto-commits the result — silently reverting the pull, and starting a commit ping-pong with the other machine.
+So if you pull new scripts and *don't* bootstrap, the `Stop` sweep at session end copies this device's **old** `~/.claude/` files back over the freshly-pulled snapshot and auto-commits the result — silently reverting the pull, and starting a commit ping-pong with the other machine.
 
 **Pull and bootstrap in the same session. Always.**
 
@@ -52,6 +52,7 @@ So if you pull new scripts and *don't* bootstrap, the `Stop` sweep at session en
    ```bash
    diff <(sed "s|\$HOME/|$HOME/|g" Claude/settings.json) "$HOME/.claude/settings.json"
    for d in scripts agents skills rules; do diff -rq -x synced "Claude/$d" "$HOME/.claude/$d"; done   # skills/synced/ is claude.ai-managed, never snapshotted
+   # "Only in Claude/…" = deleted live but still in the snapshot. The sweep never deletes (it would eat an un-bootstrapped pull), so `git rm` these by hand once you confirm the deletion was intended.
    grep -n '/Users/' Claude/settings.json || echo "no absolute paths"
    jq -e . Claude/settings.json >/dev/null
    bash -n Claude/scripts/*.sh Claude/statusline.sh

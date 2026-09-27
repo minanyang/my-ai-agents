@@ -60,22 +60,14 @@ git symbolic-ref -q HEAD >/dev/null || {
     | bash "$CLAUDE_DIR/scripts/sync-to-snapshot.sh"
 done
 
-# Deletion sweep: the copy loop above never removes anything, so a file deleted
-# live stays in the snapshot forever. Drop snapshot files under the whitelisted
-# dirs whose live counterpart is gone, plus the excluded skills/synced/. Delete-
-# only, so the secret guard in sync-to-snapshot.sh stays the sole copy path. A
-# missing live dir is skipped rather than read as "everything was deleted".
-for d in scripts agents skills rules; do
-  [ -d "$CLAUDE_DIR/$d" ] && [ -d "Claude/$d" ] || continue
-  find "Claude/$d" -type f | while IFS= read -r s; do
-    rel="${s#Claude/}"
-    case "$rel" in
-      skills/synced/*) rm -f "$s" ;;
-      *) [ -e "$CLAUDE_DIR/$rel" ] || rm -f "$s" ;;
-    esac
-  done
-  find "Claude/$d" -mindepth 1 -type d -empty -delete
-done
+# skills/synced/ is claude.ai-managed and changes every session; it is not
+# carried in the snapshot. Drop it if an older sweep copied it in.
+#
+# Deliberately NOT a general "delete what is gone live" mirror: on a device that
+# has just pulled but not yet run bootstrap, the newly pulled files are missing
+# live, and such a sweep would delete and auto-commit them. Live deletions are
+# propagated by hand — sync-device's verification step lists them.
+rm -rf Claude/skills/synced
 
 # Nothing to commit under Claude/ after sweep → silent no-op
 [ -z "$(git status --porcelain Claude/)" ] && exit 0
