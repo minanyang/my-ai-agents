@@ -73,7 +73,7 @@ So if you pull new scripts and *don't* bootstrap, the `Stop` sweep at session en
 
 | Gap | Check | Fix |
 | --- | --- | --- |
-| **Playwright MCP scope** | `jq -r '.mcpServers \| keys[]' ~/.claude.json` — must list `playwright` | `claude mcp add -s user playwright -- "$(command -v node)" "$(npm root -g)/@playwright/mcp/cli.js"` |
+| **Playwright MCP scope** | `jq -r '.mcpServers \| keys[]' ~/.claude.json` — must list `playwright`, and `claude mcp list` must show it `✓ Connected` | With fnm, register through the stable default alias — `$(command -v node)` resolves to a per-shell `fnm_multishells` path that breaks on the next shell: `A="$HOME/.local/share/fnm/aliases/default"; PATH="$A/bin:$PATH" npm i -g @playwright/mcp; claude mcp add -s user playwright -- "$A/bin/node" "$A/lib/node_modules/@playwright/mcp/cli.js"`. Global packages are per Node version — reinstall after `fnm default` changes. |
 | **MCP at project scope** | `jq -r '.projects \| to_entries[] \| select(.value.mcpServers)' ~/.claude.json` | `claude mcp add` defaults to **local** scope. A server registered there exists only in that one project — the classic failure. Re-add with `-s user`, then `claude mcp remove` in the offending project. |
 | **claude.ai connectors** | `claude mcp list` — all `✓ Connected` | `! Needs authentication` is account-level; the user must reconnect at claude.ai/settings/connectors. Cannot be fixed from the shell. |
 | **Plugins** | compare `jq '.enabledPlugins' ~/.claude/settings.json` against `jq '.plugins \| keys' ~/.claude/plugins/installed_plugins.json` | user runs `/plugin` in-session, then `/reload-plugins`. Enabling in `settings.json` only makes a plugin *known* — the payload still needs fetching. |
