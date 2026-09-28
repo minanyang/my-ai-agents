@@ -1,6 +1,6 @@
 # Next.js Recipes — Spot & Fix
 
-Concrete spot-and-fix snippets for the highest-leverage Next.js rules. Load when applying a fix — copy the patch shape, don't reinvent. APIs evolve between Next versions; the recipes below target Next 15+ App Router. For Next 14: `after` is named `unstable_after` (rename the import); `unstable_cache` is unchanged.
+Concrete spot-and-fix snippets for the highest-leverage Next.js rules. Load when applying a fix — copy the patch shape, don't reinvent. APIs evolve between Next versions; the recipes below target Next 15 App Router: `params` / `searchParams` / `cookies()` / `headers()` / `draftMode()` are async and must be awaited, and `fetch` is uncached unless you opt in. `after` is stable since 15.1.
 
 Each recipe: **Spot** → **Why bad** → **Fix**.
 
@@ -47,9 +47,10 @@ Invalidate with `revalidateTag('products')` after a mutation. For finer-grained 
 
 **Spot:** RSC awaits user, *then* awaits posts:
 ```tsx
-export default async function Page({ params }) {
-  const user = await getUser(params.id);    // 200ms
-  const posts = await getPosts(params.id);  // 200ms
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const user = await getUser(id);    // 200ms
+  const posts = await getPosts(id);  // 200ms
   return <Profile user={user} posts={posts} />;
 }
 ```
@@ -57,15 +58,49 @@ Total: 400ms. The two fetches are independent.
 
 **Fix:**
 ```tsx
-export default async function Page({ params }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;  // Next 15: params is a Promise
   const [user, posts] = await Promise.all([
-    getUser(params.id),
-    getPosts(params.id),
+    getUser(id),
+    getPosts(id),
   ]);
   return <Profile user={user} posts={posts} />;
 }
 ```
 Total: 200ms.
+
+---
+
+## server-parallel-nested-fetching
+
+**Spot:** Two `Promise.all` stages where the second depends per-item on the first:
+```ts
+const chats = await Promise.all(chatIds.map((id) => getChat(id)));
+const authors = await Promise.all(chats.map((chat) => getUser(chat.author)));
+```
+One slow `getChat` holds back every author fetch.
+
+**Fix:** chain each item's dependent fetch inside its own promise:
+```ts
+const authors = await Promise.all(
+  chatIds.map((id) => getChat(id).then((chat) => getUser(chat.author)))
+);
+```
+
+---
+
+## Opting a server fetch into caching (Next 15)
+
+**Spot:** A slow, rarely-changing upstream (CMS JSON, config) fetched with a bare `fetch(url)` from a layout / `generateMetadata` on a dynamic route. Every request blocks on the origin — Next 15 doesn't cache `fetch` by default.
+
+**Fix:**
+```ts
+const tag = `restaurant:${path}`;
+const res = await fetch(url, { next: { revalidate: 60, tags: [tag] } });
+
+// on publish (Server Action / webhook Route Handler):
+revalidateTag(tag);
+``` Only status-200 responses are written to the Data Cache, and `revalidate` serves stale while refreshing — if you need to cache a "not found" answer, or wrap non-`fetch` work, use `unstable_cache` (it stores whatever the callback returns). Don't reach for a segment-wide `fetchCache = 'default-cache'`.
 
 ---
 
@@ -154,7 +189,7 @@ export async function POST(req) {
 }
 ```
 
-**Fix (Next 15+):**
+**Fix:**
 ```ts
 import { after } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -165,7 +200,7 @@ export async function POST(req: NextRequest) {
   return Response.json(result);
 }
 ```
-Response goes out immediately; `logEvent` runs after. On Next 14, import as `unstable_after` from `next/server`.
+Response goes out immediately; `logEvent` runs after. `after` is stable since Next 15.1 — no config flag.
 
 ---
 
@@ -173,7 +208,7 @@ Response goes out immediately; `logEvent` runs after. On Next 14, import as `uns
 
 **Spot:** Heavy client component imported at the top of a page that only renders it on click.
 
-**Fix:**
+**Fix (the importing file is a Client Component, or SSR is fine):**
 ```tsx
 // Before
 import HeavyEditor from '@/components/HeavyEditor';
@@ -182,10 +217,21 @@ import HeavyEditor from '@/components/HeavyEditor';
 import dynamic from 'next/dynamic';
 const HeavyEditor = dynamic(() => import('@/components/HeavyEditor'), {
   loading: () => <EditorSkeleton />,
-  ssr: false,  // only if the component truly can't render server-side
 });
 ```
-Only set `ssr: false` when needed — disabling SSR forfeits server-rendered content for that subtree.
+
+**Fix (component truly can't render server-side — uses `window`, etc.):** `ssr: false` is only supported in a Client Component, so put the `dynamic()` call in a `'use client'` wrapper and render that from the Server Component page:
+```tsx
+// components/HeavyEditorClient.tsx
+'use client';
+import dynamic from 'next/dynamic';
+
+export const HeavyEditorClient = dynamic(() => import('./HeavyEditor'), {
+  loading: () => <EditorSkeleton />,
+  ssr: false,
+});
+```
+Only set `ssr: false` when needed — disabling SSR forfeits server-rendered content for that subtree, and the chunk still loads at hydration rather than on interaction. If the component is only mounted from client state (a panel opened on click), it never renders on the server anyway; a `lazy()` / `dynamic()` split at that point is enough.
 
 ---
 
@@ -214,6 +260,23 @@ import { Counter } from '@/components/Counter';  // this one is 'use client'
 export default function Dashboard() { /* ... */ }
 ```
 Now only `Counter` ships to the client. Sidebar + Header render on the server.
+
+---
+
+## server-no-shared-module-state
+
+**Spot:** a module-level `let` written during a server render (`let currentUser = null; … currentUser = await auth()`) and read by another component.
+
+**Why bad:** module scope is process-wide; concurrent requests overwrite each other → one user's data in another's response.
+
+**Fix:** keep request data in the render tree — pass it as props, or read it through a `cache()`-wrapped getter (per-request):
+```tsx
+export default async function Page() {
+  const user = await getCurrentUser();  // cache()-wrapped, see server-cache-react
+  return <Dashboard user={user} />;
+}
+```
+Module scope is fine for immutable config/static assets and deliberately keyed cross-request caches.
 
 ---
 

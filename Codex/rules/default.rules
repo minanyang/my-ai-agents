@@ -1,0 +1,75 @@
+# Conservative command policy for the personal Codex installation.
+# The hook guard remains as defense in depth for compound shell strings.
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "forbidden",
+    justification = "Use a targeted, recoverable deletion instead of recursive forced removal.",
+    match = ["rm -rf build", "rm -rf ./tmp"],
+    not_match = ["rm -r build"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-fr"],
+    decision = "forbidden",
+    justification = "Use a targeted, recoverable deletion instead of recursive forced removal.",
+    match = ["rm -fr build"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", ["--force", "-f"]],
+    decision = "forbidden",
+    justification = "Do not rewrite a remote branch without an explicit user-directed recovery plan.",
+    match = ["git push --force origin feature", "git push -f origin feature"],
+    not_match = ["git push origin feature"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Preserve local changes; use a targeted recovery operation instead.",
+    match = ["git reset --hard HEAD"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", ["-f", "-fd", "-df"]],
+    decision = "forbidden",
+    justification = "Do not remove untracked files or directories irreversibly.",
+    match = ["git clean -f", "git clean -fd", "git clean -df"],
+    not_match = ["git clean -n"],
+)
+
+prefix_rule(
+    pattern = ["git", "branch", "-D"],
+    decision = "forbidden",
+    justification = "Do not force-delete a branch; use a recoverable branch operation.",
+    match = ["git branch -D experiment"],
+)
+
+prefix_rule(
+    pattern = ["npm", "publish"],
+    decision = "forbidden",
+    justification = "Publishing packages is an external release action requiring explicit handling.",
+    match = ["npm publish"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "publish"],
+    decision = "forbidden",
+    justification = "Publishing packages is an external release action requiring explicit handling.",
+    match = ["yarn publish"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "publish"],
+    decision = "forbidden",
+    justification = "Publishing packages is an external release action requiring explicit handling.",
+    match = ["pnpm publish"],
+)
+
+prefix_rule(
+    pattern = ["bun", "publish"],
+    decision = "forbidden",
+    justification = "Publishing packages is an external release action requiring explicit handling.",
+    match = ["bun publish"],
+)

@@ -60,6 +60,15 @@ git symbolic-ref -q HEAD >/dev/null || {
     | bash "$CLAUDE_DIR/scripts/sync-to-snapshot.sh"
 done
 
+# skills/synced/ is claude.ai-managed and changes every session; it is not
+# carried in the snapshot. Drop it if an older sweep copied it in.
+#
+# Deliberately NOT a general "delete what is gone live" mirror: on a device that
+# has just pulled but not yet run bootstrap, the newly pulled files are missing
+# live, and such a sweep would delete and auto-commit them. Live deletions are
+# propagated by hand — sync-device's verification step lists them.
+rm -rf Claude/skills/synced
+
 # Nothing to commit under Claude/ after sweep → silent no-op
 [ -z "$(git status --porcelain Claude/)" ] && exit 0
 

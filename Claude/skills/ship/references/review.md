@@ -18,7 +18,7 @@ The reviewers must be cold contexts. Swapping in fresh agents is not enough on i
 | `security-reviewer` | Injection, authz, secrets, unsafe input handling in the changed surface |
 | `qa-engineer` — when the change touches test-covered code or names runtime behaviour | Actually run the relevant test commands **in the worktree** and report output verbatim |
 
-They answer independent questions and none writes to the tree — spawn all applicable ones in a single message.
+They answer independent questions and none should write to the tree — `qa-engineer` has `Edit`/`Write`, so tell it explicitly to run tests only and change nothing. Spawn all applicable ones in a single message.
 
 ## Record, then act on the findings
 

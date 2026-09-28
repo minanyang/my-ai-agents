@@ -15,7 +15,7 @@ The repo is a snapshot of `~/.claude/`, not an application. Pulling changes **fi
 
 - **Never stop after `git pull`.** A pull that isn't followed by bootstrap is worse than no pull at all (see The trap).
 - **Never hand-copy `settings.json`**, and never `cp` the snapshot into `~/.claude/`. The snapshot stores a literal `$HOME` token that only `bootstrap-claude.sh` expands. The hook commands single-quote their paths, so the shell will *not* expand it at runtime — a raw copy leaves every externally-managed hook pointing at a nonexistent path, and because those hooks self-guard with `-f`/`-r`/`-x` tests they fail **silently**.
-- **Never edit whitelisted files under `Claude/` in the repo** to fix a drift you spot. The end-of-session sweep copies the live `~/.claude/` version on top and your edit vanishes. Edit under `~/.claude/` and let the hook mirror it in. (Root docs and `Cursor/` are ordinary repo files — edit those in place.)
+- **Never edit whitelisted files under `Claude/` in the repo** to fix a drift you spot. The end-of-session sweep copies the live `~/.claude/` version on top and your edit vanishes. Edit under `~/.claude/` and let the hook mirror it in. (Root docs, `Cursor/` and `Codex/` are ordinary repo files — edit those in place.)
 - **Never resolve a diverged branch by reflex.** Both machines auto-commit, so divergence is normal and expected here. Inspect before merging or rebasing.
 - **Never silently apply a config removal.** If the pull removes a plugin/MCP/hook this device is actively using, surface it and let the user decide.
 
@@ -51,7 +51,8 @@ So if you pull new scripts and *don't* bootstrap, the `Stop` sweep at session en
 6. **Verify the sync.** All of these must pass:
    ```bash
    diff <(sed "s|\$HOME/|$HOME/|g" Claude/settings.json) "$HOME/.claude/settings.json"
-   for d in scripts agents skills rules; do diff -rq "Claude/$d" "$HOME/.claude/$d"; done
+   for d in scripts agents skills rules; do diff -rq -x synced "Claude/$d" "$HOME/.claude/$d"; done   # skills/synced/ is claude.ai-managed, never snapshotted
+   # "Only in Claude/…" = deleted live but still in the snapshot. The sweep never deletes (it would eat an un-bootstrapped pull), so `git rm` these by hand once you confirm the deletion was intended.
    grep -n '/Users/' Claude/settings.json || echo "no absolute paths"
    jq -e . Claude/settings.json >/dev/null
    bash -n Claude/scripts/*.sh Claude/statusline.sh

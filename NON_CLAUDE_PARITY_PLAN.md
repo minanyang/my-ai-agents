@@ -1,6 +1,6 @@
 # Non-Claude Parity Plan
 
-This document describes how to ship a version of this repository for users who do not have Claude, while preserving the same functional behavior as closely as possible.
+This document describes how to ship provider-specific versions of this repository while preserving the same functional behavior as closely as possible.
 
 ## Goal
 
@@ -43,10 +43,11 @@ The existing implementation lives under `Claude/` and includes:
 3. Claude command usage in scripts (`claude --print` in auto-commit flow).
 4. Claude-specific MCP naming patterns in agent tool lists (`mcp__claude_ai_*`).
 5. Claude plugin marketplace + slash-command workflows.
+6. Codex uses TOML custom agents, `.agents/skills`, native lifecycle hooks, and `.rules` command policies rather than Claude's path-rule format.
 
 ## Target Architecture (Provider-Agnostic)
 
-Create a provider-agnostic distribution with a thin compatibility layer:
+Create provider-specific distributions with a thin compatibility layer:
 
 - `platform/` (new): normalized runtime contracts
   - `events/` (tool/session lifecycle event shapes)
@@ -56,20 +57,22 @@ Create a provider-agnostic distribution with a thin compatibility layer:
   - `rules/`, `skills/`, `agents/` source-of-truth
 - `dist/<provider>/` (new): generated provider-specific output
   - `dist/claude/` mirrors current behavior
-  - `dist/cursor/` and/or `dist/generic/` for non-Claude users
+  - `dist/cursor/` and `dist/codex/` for non-Claude users
+
+The current repository keeps the established `Claude/` and `Cursor/` layouts and adds a native `Codex/` layout first. A generated shared source tree remains optional future work; do not force a broad refactor before the three runtimes are behaviorally understood.
 
 ## Parity Matrix
 
 | Capability | Current Source | Parity Strategy (Non-Claude) | Parity Level |
 | --- | --- | --- | --- |
 | Global instruction policy | `Claude/CLAUDE.md` | Compile into target provider global/system prompt format | Exact |
-| Path-scoped rules | `Claude/rules/*.md` | Convert glob metadata into target rule mechanism; fallback to prompt injection by path | Near-exact |
-| Role subagents | `Claude/agents/*.md` | Convert role definitions to target agent schema and tool permissions | Near-exact |
+| Path-scoped rules | `Claude/rules/*.md` | Convert coding guidance into Codex skills or project `AGENTS.md`; reserve Codex `.rules` for command policy | Near-exact |
+| Role subagents | `Claude/agents/*.md` | Convert role definitions to Codex `.toml` agents and document tool inheritance | Near-exact |
 | Skills | `Claude/skills/*` | Keep markdown skill content; adapt trigger metadata to host format | Near-exact |
-| Bash safety guard | `scripts/guard-bash.sh` | Keep script; wire via provider hook or wrapper shell | Exact |
+| Bash safety guard | `scripts/guard-bash.sh` | Wire the equivalent script through Codex `PreToolUse` | Exact |
 | Snapshot sync | `scripts/sync-to-snapshot.sh` | Keep logic; replace Claude event input with normalized JSON adapter | Exact |
 | Auto commit message | `scripts/auto-commit-snapshot.sh` | Replace direct Claude call with provider command adapter | Exact |
-| Instructions-loaded logging | `scripts/log-instructions-loaded.sh` | Emit equivalent events from runtime wrapper if provider lacks this event | Near-exact |
+| Instructions-loaded logging | `scripts/log-instructions-loaded.sh` | Use Codex `SessionStart`; there is no direct `InstructionsLoaded` event | Near-exact |
 | Status line | `statusline.sh` | Map provider session payload to expected fields, keep script interface stable | Near-exact |
 | MCP connectors | agent tool lists + setup | Introduce name mapping (`logical_tool -> provider_tool`) | Near-exact |
 
@@ -141,6 +144,8 @@ Priority order:
 4. Introduce logical MCP tool aliases in role definitions.
 5. Split docs into provider-specific setup guides.
 6. Add parity test checklist that validates every capability.
+
+Codex Phase 1 now covers the instruction, agent, skill, bootstrap, and hook surfaces in `Codex/`. The remaining backlog is adapter hardening, MCP mappings, and end-to-end validation against the user's connected services.
 
 ## Risks
 

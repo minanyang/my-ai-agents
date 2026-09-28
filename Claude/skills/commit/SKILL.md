@@ -2,7 +2,7 @@
 name: commit
 description: Inspect git changes, draft a Conventional Commit message, and create the commit when explicitly asked — staging only the paths this session produced, never the whole worktree. Use when the user says commit, asks for a commit message, wants to stage and commit, asks to review a diff before committing, or types phrases like "commit this", "write a commit message", "prepare a commit".
 disable-model-invocation: true
-allowed-tools: Bash(git status:*) Bash(git diff:*) Bash(git log:*) Bash(git add:*) Bash(git commit:*) Bash(git restore:*)
+allowed-tools: Bash(git status:*) Bash(git diff:*) Bash(git log:*) Bash(git add:*) Bash(git commit:*) Bash(git restore:*) Bash(git apply:*)
 ---
 
 # Commit
@@ -27,7 +27,7 @@ Commit only what this session produced. Everything else in the worktree is the u
 
 - Stage by explicit path: `git add -- <path> [<path>…]`. Never `git add -A`, `git add .`, or `git commit -a`.
 - Files you created are untracked — they need an explicit `git add` or they'll be left behind.
-- **A file you edited can still carry changes that aren't yours.** `git add <file>` stages the *whole file*, so if it was already dirty before you touched it, staging by path silently commits the user's in-progress work too. Use `git add -p` to take only your hunks, or surface it and let the user decide.
+- **A file you edited can still carry changes that aren't yours.** `git add <file>` stages the *whole file*, so if it was already dirty before you touched it, staging by path silently commits the user's in-progress work too. Stage only your hunks without `-p`: write `git diff -- <file>` to a patch file, delete the hunks that aren't yours, then `git apply --cached <patch>` and re-check `git diff --cached`. If the hunks interleave too tightly to split cleanly, surface it and let the user decide.
 - Content staged *before* you were invoked is the user's deliberate staging. Don't unstage it, but don't quietly fold it into your message either — report it and ask whether it belongs in this commit.
 - **If you can't reconstruct what you touched** — resumed or compacted session, or the user edited files by hand alongside you — say so and ask which paths to stage. Don't guess, and never fall back to staging everything.
 
@@ -76,9 +76,9 @@ After staging, list the paths going in, and name anything dirty you deliberately
 ## Common scenarios
 
 - **Pre-commit hook reformats files mid-commit.** The commit aborts with a dirty tree. Re-stage the now-formatted files and run `git commit` again — do *not* `--amend` (the previous commit isn't yours) and do *not* `--no-verify`.
-- **Pre-commit fails on staged files but the user wants to commit a subset.** Use `git add -p` to split hunks; commit the clean subset first, leave the failing changes unstaged for the user to address.
+- **Pre-commit fails on staged files but the user wants to commit a subset.** Split hunks with the patch + `git apply --cached` route from **Session scope** (never `git add -p`); commit the clean subset first, leave the failing changes unstaged for the user to address.
 - **Merge / cherry-pick / rebase in progress.** `git status` shows files in *both modified* or `.git/MERGE_HEAD` exists. Finish the resolution first (`git add` each resolved file, run the build/typecheck if cheap), then commit. Never `--allow-empty` past a conflict, never reset to "make it go away" — that destroys the resolution.
-- **Amend or squash workflow.** Only when the user explicitly asks. For HEAD use `git commit --amend`; for older commits use `git commit --fixup=<sha>` then `git rebase -i --autosquash <base>`. Refuse if the target commit has already been pushed to a shared branch — surface the risk and let the user decide.
+- **Amend or squash workflow.** Only when the user explicitly asks. For HEAD use `git commit --amend`; for older commits create `git commit --fixup=<sha>` and hand the squash to the user (`git rebase -i --autosquash <base>`) — the rebase is interactive and outside this skill's tools, so don't run it yourself. Refuse if the target commit has already been pushed to a shared branch — surface the risk and let the user decide.
 - **Monorepo with per-package lint/format.** Check `pnpm-workspace.yaml`, `nx.json`, `lerna.json`, or `turbo.json` first to find the affected package, then run scripts from that package's directory — running root-level scripts often misses or duplicates work.
 - **Worktree was already dirty when the session started.** Normal — the user has parallel work in flight. Stage only your paths, commit, and list what you left dirty. Don't offer to "clean up" the rest.
 - **User provided a draft message.** Edit, don't replace. Preserve their voice, phrasing, and emphasis. Fix only the Conventional-Commit shape (type, scope, casing) and obvious issues (typos, wrong type). If their message is already fine, say so and use it verbatim.
