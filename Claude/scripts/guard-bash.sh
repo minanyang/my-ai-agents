@@ -38,6 +38,17 @@ PATTERNS=(
   '\bdd[[:space:]]+if=.*[[:space:]]+of=/dev/'
 )
 
+# Claude co-author trailers are banned by Mian's CLAUDE.md (§5), but the
+# harness keeps injecting an attribution reminder; catch it before it lands.
+if echo "$COMMAND" | grep -iEq '\bgit\b.*\bcommit\b' \
+  && echo "$COMMAND" | grep -iEq 'co-authored-by:.*claude'; then
+  cat >&2 <<'MSG'
+Blocked by guard-bash.sh — this commit message carries a "Co-Authored-By: Claude" trailer.
+CLAUDE.md §5 forbids it. Remove that line from the message and commit again.
+MSG
+  exit 2
+fi
+
 for pat in "${PATTERNS[@]}"; do
   if echo "$COMMAND" | grep -iEq "$pat"; then
     cat >&2 <<EOF
