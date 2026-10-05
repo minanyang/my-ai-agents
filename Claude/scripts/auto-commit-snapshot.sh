@@ -113,7 +113,11 @@ if [ -z "$MSG" ] || \
   exit 0
 fi
 
-if git commit -q -m "$MSG" 2>>"$LOG"; then
+# Overlapping Stop runs (turns ending seconds apart, or two sessions) each stage
+# the same sweep; whichever commits first empties the index for the others.
+git diff --cached --quiet -- Claude/ && exit 0
+
+if git commit -q -m "$MSG" >>"$LOG" 2>&1; then
   SHA=$(git rev-parse --short HEAD)
   printf '%s [COMMIT] %s — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$SHA" "$MSG" >> "$LOG"
 else
