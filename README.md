@@ -51,7 +51,7 @@ The four `sonnet` roles also set `effort: low`; `frontend-engineer` and `backend
 | [`commit-for-review`](./Claude/skills/commit-for-review) | Same as `commit`, but lands the commit on a derived `review/<id>` branch to keep review changes off the branch under review |
 | [`code-review`](./Claude/skills/code-review) | Reviews staged + unstaged work only, with findings/fix workflow |
 | [`code-review-branch`](./Claude/skills/code-review-branch) | Reviews full branch vs base before PR/merge |
-| [`skill-judge`](./Claude/skills/skill-judge) | Evaluates skill quality with rubric-based scoring |
+| [`skill-judge`](./Claude/skills/skill-judge) | Fast 4-pass static review of a skill (correctness, triggering, failure mode closed, cost) before it ships; hands measuring off to `skill-creator` |
 | [`react`](./Claude/skills/react) | React client performance guidance (rerenders, bundle, waterfalls, hot paths) |
 | [`nextjs`](./Claude/skills/nextjs) | Next.js App Router guidance (RSC boundaries, server caching, hydration, route strategy) |
 | [`sync-device`](./Claude/skills/sync-device) | Pulls this repo onto a device, runs `bootstrap-claude.sh`, checks the per-device gaps the snapshot can't carry, and summarises what changed |
