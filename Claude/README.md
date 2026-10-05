@@ -76,6 +76,14 @@ Configured under `hooks` in [`settings.json`](./settings.json). Hooks run automa
 The `PostToolUse` + `Stop` pairing keeps the snapshot self-maintaining over time.
 For hook setup/troubleshooting workflow, see [`setup.md`](./setup.md#hooks).
 
+### Mods
+
+Function-hook plugins that the engine runs itself, so the model cannot skip them. A plugin folder under `~/.claude/skills/<name>/` is auto-loaded, which means the snapshot carries it like any skill.
+
+| Mod | Hooks | What it does |
+| --- | --- | --- |
+| [`snapshot-guard`](./skills/snapshot-guard) | `tool.call`, `session.start`, `turn.start` | Denies `Edit`/`Write` to mirrored paths under `Claude/` (the Stop sweep would overwrite them) and names the live `~/.claude/` file instead; toasts new `[BLOCKED]`/`[ABORT]`/`[FAIL]` lines from `~/.claude/sync-to-snapshot.log`. Claude-only — Cursor has no equivalent. |
+
 ## MCP and connectors
 
 This setup uses Claude.ai-managed connectors (account-level) and local MCP servers (device-level).

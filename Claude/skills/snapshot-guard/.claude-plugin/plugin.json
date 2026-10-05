@@ -1,0 +1,1 @@
+{ "name": "snapshot-guard", "version": "0.1.0", "description": "Guard the ~/.claude -> my-ai-agents snapshot loop: block edits to mirrored files in the repo, surface sync and auto-commit failures" }
