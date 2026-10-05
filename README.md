@@ -83,6 +83,14 @@ Configured under `hooks` in [`Claude/settings.json`](./Claude/settings.json). Ho
 
 The `PostToolUse` + `Stop` pairing keeps the snapshot self-maintaining over time.
 
+### Mods
+
+Function-hook plugins that the engine runs itself, so the model cannot skip them. A plugin folder under `~/.claude/skills/<name>/` is auto-loaded, which means the snapshot carries it like any skill.
+
+| Mod | Hooks | What it does |
+| --- | --- | --- |
+| [`snapshot-guard`](./Claude/skills/snapshot-guard) | `tool.call`, `session.start`, `turn.start` | Denies `Edit`/`Write` to mirrored paths under `Claude/` (the Stop sweep would overwrite them) and names the live `~/.claude/` file instead; toasts new `[BLOCKED]`/`[ABORT]`/`[FAIL]` lines from `~/.claude/sync-to-snapshot.log`. Claude-only — Cursor has no equivalent. |
+
 ## Claude Plugins
 
 Defined in [`Claude/settings.json`](./Claude/settings.json):

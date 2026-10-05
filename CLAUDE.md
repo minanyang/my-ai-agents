@@ -81,6 +81,7 @@ End-to-end checklists live in `Claude/setup.md` §5 and `Cursor/setup.md` §6. `
 | Execution-mode frontmatter (`background:`, `effort:`) | present | absent |
 | Destructive-command guard | `guard-bash.sh` via `PreToolUse` hook | `guard-bash-portable.sh` via `pre-commit` git hook |
 | Agent `skills:` frontmatter | `claude-api` on backend, `react`/`nextjs` on frontend | no `claude-api` (no Cursor equivalent); `react`/`nextjs` only |
+| Mods (function-hook plugins under `skills/<name>/`) | `snapshot-guard` | none — Cursor has no function-hook runtime; `skills/snapshot-guard/` is excluded from parity |
 
 Cursor has no `PostToolUse`/`InstructionsLoaded`/`Stop` equivalents, so it has no snapshot sync or auto-commit — that side uses git hooks and the `AI_COMMIT_CMD` adapter (`Cursor/scripts/gen-commit-message.sh`: prompt on stdin, one plain-text Conventional Commit line on stdout).
 
